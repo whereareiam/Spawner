@@ -4,7 +4,7 @@ import me.whereareiam.spawner.SpawnerConfig
 import me.whereareiam.spawner.download.downloadFile
 import me.whereareiam.spawner.download.resolveDownload
 import me.whereareiam.spawner.file.execCommand
-import me.whereareiam.spawner.file.installProviderJars
+import me.whereareiam.spawner.file.installExtraFiles
 import me.whereareiam.spawner.isVelocityProxy
 import me.whereareiam.spawner.target.SpawnerTarget
 import me.whereareiam.spawner.target.TargetTasks
@@ -61,7 +61,7 @@ internal class VelocityProxyTarget : SpawnerTarget {
 		val prepareVelocityDev = project.tasks.register("prepareVelocityDev") {
 			group = "devserver"
 			description = "Prepare Velocity dev proxy directory."
-			dependsOn(downloadVelocity, installVelocityPlugin, config.providerJars)
+			dependsOn(downloadVelocity, installVelocityPlugin, config.velocity.extraFiles)
 			onlyIf { isEnabled(config) }
 			doLast {
 				val configText = """
@@ -152,9 +152,15 @@ internal class VelocityProxyTarget : SpawnerTarget {
 				configFile.parentFile.mkdirs()
 				configFile.writeText(configText + System.lineSeparator())
 
-				val pluginDataDir = velocityDir.get().dir("plugins")
-					.dir(config.pluginDataDirName.get()).asFile
-				installProviderJars(pluginDataDir, config)
+				val extraFiles = config.velocity.extraFiles.files
+				if (extraFiles.isNotEmpty()) {
+					val extraDir = config.velocity.extraFilesDir.orNull?.asFile
+					if (extraDir == null) {
+						project.logger.lifecycle("No extra files directory configured; skipping extra file install.")
+						return@doLast
+					}
+					installExtraFiles(extraDir, extraFiles)
+				}
 			}
 		}
 

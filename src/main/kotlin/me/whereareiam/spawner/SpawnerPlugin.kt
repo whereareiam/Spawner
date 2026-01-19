@@ -31,9 +31,6 @@ class SpawnerPlugin : Plugin<Project> {
 		config.forceDownload.convention(
 			project.providers.gradleProperty("dev.forceDownload").map { it.toBoolean() }.orElse(false)
 		)
-		config.pluginDataDirName.convention(
-			project.providers.gradleProperty("dev.plugin.dataDirName").orElse("spawner")
-		)
 		config.serverType.convention(
 			project.providers.gradleProperty("dev.server.type").orElse("none")
 		)
@@ -77,4 +74,3 @@ class SpawnerPlugin : Plugin<Project> {
 		)
 	}
 }
-

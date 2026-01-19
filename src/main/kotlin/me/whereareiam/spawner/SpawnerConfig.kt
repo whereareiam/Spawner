@@ -22,9 +22,6 @@ abstract class SpawnerConfig @Inject constructor(
 		.convention("spawner/1.0")
 	val forceDownload: Property<Boolean> = objects.property(Boolean::class.java)
 		.convention(false)
-	val pluginDataDirName: Property<String> = objects.property(String::class.java)
-		.convention("spawner")
-	val providerJars: ConfigurableFileCollection = objects.fileCollection()
 	val serverType: Property<String> = objects.property(String::class.java)
 		.convention("none")
 	val proxyType: Property<String> = objects.property(String::class.java)
@@ -40,6 +37,8 @@ abstract class SpawnerConfig @Inject constructor(
 }
 
 abstract class PaperServerConfig @Inject constructor(objects: ObjectFactory) {
+	val extraFiles: ConfigurableFileCollection = objects.fileCollection()
+	val extraFilesDir: DirectoryProperty = objects.directoryProperty()
 	val downloadProvider: Property<String> = objects.property(String::class.java)
 		.convention("")
 	val version: Property<String> = objects.property(String::class.java)
@@ -55,6 +54,8 @@ abstract class PaperServerConfig @Inject constructor(objects: ObjectFactory) {
 }
 
 abstract class VelocityProxyConfig @Inject constructor(objects: ObjectFactory) {
+	val extraFiles: ConfigurableFileCollection = objects.fileCollection()
+	val extraFilesDir: DirectoryProperty = objects.directoryProperty()
 	val downloadProvider: Property<String> = objects.property(String::class.java)
 		.convention("")
 	val version: Property<String> = objects.property(String::class.java)
@@ -68,4 +69,3 @@ abstract class VelocityProxyConfig @Inject constructor(objects: ObjectFactory) {
 		.convention("none")
 	val pluginJar: RegularFileProperty = objects.fileProperty()
 }
-

@@ -4,7 +4,7 @@ import me.whereareiam.spawner.SpawnerConfig
 import me.whereareiam.spawner.download.downloadFile
 import me.whereareiam.spawner.download.resolveDownload
 import me.whereareiam.spawner.file.execCommand
-import me.whereareiam.spawner.file.installProviderJars
+import me.whereareiam.spawner.file.installExtraFiles
 import me.whereareiam.spawner.file.updatePropertyFile
 import me.whereareiam.spawner.isPaperServer
 import me.whereareiam.spawner.isVelocityProxy
@@ -68,7 +68,7 @@ internal class PaperServerTarget : SpawnerTarget {
 		val preparePaperDev = project.tasks.register("preparePaperDev") {
 			group = "devserver"
 			description = "Prepare Paper dev server directory."
-			dependsOn(downloadPaper, installPaperPlugin, config.providerJars)
+			dependsOn(downloadPaper, installPaperPlugin, config.paper.extraFiles)
 			onlyIf { isEnabled(config) }
 			doLast {
 				if (config.paper.acceptEula.get()) {
@@ -93,9 +93,15 @@ internal class PaperServerTarget : SpawnerTarget {
 					)
 				}
 
-				val pluginDataDir = paperDir.get().dir("plugins")
-					.dir(config.pluginDataDirName.get()).asFile
-				installProviderJars(pluginDataDir, config)
+				val extraFiles = config.paper.extraFiles.files
+				if (extraFiles.isNotEmpty()) {
+					val extraDir = config.paper.extraFilesDir.orNull?.asFile
+					if (extraDir == null) {
+						project.logger.lifecycle("No extra files directory configured; skipping extra file install.")
+						return@doLast
+					}
+					installExtraFiles(extraDir, extraFiles)
+				}
 			}
 		}
 
@@ -140,5 +146,4 @@ internal class PaperServerTarget : SpawnerTarget {
 		}
 	}
 }
-
 
