@@ -1,7 +1,7 @@
 plugins {
 	`kotlin-dsl`
 	`java-gradle-plugin`
-	id("com.gradle.plugin-publish") version "2.0.0"
+	`maven-publish`
 }
 
 group = "me.whereareiam"
@@ -13,15 +13,25 @@ repositories {
 }
 
 gradlePlugin {
-	website.set("https://github.com/whereareiam/spawner")
-	vcsUrl.set("https://github.com/whereareiam/spawner")
 	plugins {
 		create("spawner") {
 			id = "me.whereareiam.spawner"
 			implementationClass = "me.whereareiam.spawner.SpawnerPlugin"
-			displayName = "Spawner"
-			description = "Spawn and manage local dev servers for different platforms"
-			tags.set(listOf("minecraft", "paper", "velocity", "devserver"))
+		}
+	}
+}
+
+publishing {
+	repositories {
+		maven {
+			val realm = (System.getenv("PUBLISH_REALM")
+				?: if ((System.getenv("VERSION") ?: "dev").contains("dev", true)) "development" else "release")
+				.lowercase()
+			url = uri("https://maven.whereareiam.me/$realm")
+			credentials {
+				username = System.getenv("PUBLISH_USER") ?: ""
+				password = System.getenv("PUBLISH_TOKEN") ?: ""
+			}
 		}
 	}
 }
