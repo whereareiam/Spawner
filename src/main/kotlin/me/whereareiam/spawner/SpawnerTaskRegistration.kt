@@ -1,34 +1,27 @@
 package me.whereareiam.spawner
 
-import me.whereareiam.spawner.target.SpawnerTarget
-import me.whereareiam.spawner.target.proxy.velocity.VelocityProxyTarget
-import me.whereareiam.spawner.target.server.paper.PaperServerTarget
+import me.whereareiam.spawner.config.SpawnerConfig
+import me.whereareiam.spawner.model.RuntimeSettings
 import org.gradle.api.Project
 
 fun registerSpawnerTasks(project: Project, config: SpawnerConfig) {
-	val targets: List<SpawnerTarget> = listOf(
-		PaperServerTarget(),
-		VelocityProxyTarget()
-	)
-	val registered = targets.map { target -> target to target.registerTasks(project, config) }
+	project.afterEvaluate {
+		validateTypes(config)
+		validateScenarios(config)
 
-	val prepareDevServers = project.tasks.register("prepareDevServers") {
-		group = "devserver"
-		description = "Prepare dev servers for the current platform."
-		dependsOn(registered.map { it.second.prepare })
-	}
+		val runtime = RuntimeSettings(
+			serverDir = config.serverDir.get().asFile,
+			downloadProviders = config.downloadProviders.toMap(),
+			defaultDownloadProvider = config.downloadProvider.get(),
+			userAgent = config.userAgent.get(),
+			forceDownload = config.forceDownload.get(),
+			downloadCacheDir = project.layout.buildDirectory.dir("spawner-downloads").get().asFile
+		)
 
-	project.tasks.register("runDevServers") {
-		group = "devserver"
-		description = "Run dev servers for the current platform."
-		dependsOn(prepareDevServers)
-		doLast {
-			for ((target, _) in registered) {
-				if (target.isEnabled(config)) {
-					target.startDetached(project, config)
-				}
-			}
+		if (config.scenarios.isEmpty()) {
+			registerStandaloneMode(project, config, runtime)
+		} else {
+			registerScenarioMode(project, config, runtime)
 		}
 	}
 }
-

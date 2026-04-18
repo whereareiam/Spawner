@@ -12,6 +12,16 @@ repositories {
 	gradlePluginPortal()
 }
 
+dependencies {
+	testImplementation(gradleTestKit())
+	testImplementation(kotlin("test"))
+	testImplementation(libs.junit.jupiter)
+}
+
+tasks.test {
+	useJUnitPlatform()
+}
+
 gradlePlugin {
 	plugins {
 		create("spawner") {

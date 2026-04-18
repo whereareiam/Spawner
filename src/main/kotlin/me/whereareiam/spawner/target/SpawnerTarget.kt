@@ -1,19 +1,25 @@
 package me.whereareiam.spawner.target
 
-import me.whereareiam.spawner.SpawnerConfig
+import me.whereareiam.spawner.model.InstancePlan
+import me.whereareiam.spawner.model.RuntimeSettings
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskProvider
 
-internal interface SpawnerTarget {
+internal interface SpawnerTarget<T : InstancePlan> {
 	val id: String
-	fun isEnabled(config: SpawnerConfig): Boolean
-	fun registerTasks(project: Project, config: SpawnerConfig): TargetTasks
-	fun startDetached(project: Project, config: SpawnerConfig)
+	fun registerTasks(
+		project: Project,
+		runtime: RuntimeSettings,
+		instance: T,
+		taskSuffix: String
+	): TargetTasks
+
+	fun startDetached(project: Project, instance: T)
 }
 
 internal data class TargetTasks(
 	val prepare: TaskProvider<out Task>,
-	val run: TaskProvider<out Task>
+	val run: TaskProvider<out Task>,
+	val serverSpec: String
 )
-

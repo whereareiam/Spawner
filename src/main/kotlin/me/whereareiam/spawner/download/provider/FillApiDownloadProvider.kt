@@ -2,15 +2,17 @@ package me.whereareiam.spawner.download.provider
 
 import groovy.json.JsonSlurper
 import me.whereareiam.spawner.download.DownloadProvider
-import me.whereareiam.spawner.model.ResolvedDownload
+import me.whereareiam.spawner.model.download.DownloadPlan
+import me.whereareiam.spawner.model.download.ResolvedDownload
 import org.gradle.api.GradleException
 import java.net.HttpURLConnection
 import java.net.URI
 
 class FillApiDownloadProvider : DownloadProvider {
-	override fun resolve(project: String, version: String?, userAgent: String): ResolvedDownload {
-		val (url, resolvedVersion) = resolveLatestStableDownload(project, version, userAgent)
-		return ResolvedDownload(url, resolvedVersion)
+	override fun resolve(download: DownloadPlan, userAgent: String): ResolvedDownload {
+		val (url, resolvedVersion) = resolveLatestStableDownload(download.identifier, download.version, userAgent)
+		val fileName = download.fileName?.takeIf { it.isNotBlank() } ?: URI.create(url).path.substringAfterLast('/')
+		return ResolvedDownload(url, resolvedVersion, fileName)
 	}
 }
 
@@ -94,4 +96,3 @@ private fun compareVersions(left: String, right: String): Int {
 	}
 	return 0
 }
-

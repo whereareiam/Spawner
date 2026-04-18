@@ -1,8 +1,8 @@
 package me.whereareiam.spawner.download
 
-import me.whereareiam.spawner.model.ResolvedDownload
+import me.whereareiam.spawner.model.download.DownloadPlan
+import me.whereareiam.spawner.model.download.ResolvedDownload
 
 interface DownloadProvider {
-	fun resolve(project: String, version: String?, userAgent: String): ResolvedDownload
+	fun resolve(download: DownloadPlan, userAgent: String): ResolvedDownload
 }
-

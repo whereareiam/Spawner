@@ -1,6 +1,8 @@
 package me.whereareiam.spawner
 
+import me.whereareiam.spawner.config.SpawnerConfig
 import me.whereareiam.spawner.download.provider.FillApiDownloadProvider
+import me.whereareiam.spawner.download.provider.ModrinthDownloadProvider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.jvm.tasks.Jar
@@ -9,6 +11,7 @@ class SpawnerPlugin : Plugin<Project> {
 	override fun apply(project: Project) {
 		val config = project.extensions.create("spawner", SpawnerConfig::class.java)
 		config.registerDownloadProvider("fill", FillApiDownloadProvider())
+		config.registerDownloadProvider("modrinth", ModrinthDownloadProvider())
 		applyPropertyConventions(project, config)
 		validateTypes(config)
 
