@@ -31,10 +31,15 @@ abstract class RunServerTask : DefaultTask() {
 		val process = ProcessBuilder(commandLine.get())
 			.directory(workingDir.get().asFile)
 			.start()
+		val shutdownHook = Thread(
+			{ stopProcessTree(process, killTimeoutSeconds.get()) },
+			"${name}-shutdown"
+		)
 
 		pipeToLogger(process.inputStream, logger::lifecycle)
 		pipeToLogger(process.errorStream, logger::error)
 		pipeInput(System.`in`, process.outputStream)
+		Runtime.getRuntime().addShutdownHook(shutdownHook)
 
 		try {
 			val exitCode = process.waitFor()
@@ -44,6 +49,8 @@ abstract class RunServerTask : DefaultTask() {
 		} catch (_: InterruptedException) {
 			stopProcessTree(process, killTimeoutSeconds.get())
 			Thread.currentThread().interrupt()
+		} finally {
+			runCatching { Runtime.getRuntime().removeShutdownHook(shutdownHook) }
 		}
 	}
 
@@ -92,4 +99,3 @@ abstract class RunServerTask : DefaultTask() {
 		}
 	}
 }
-
