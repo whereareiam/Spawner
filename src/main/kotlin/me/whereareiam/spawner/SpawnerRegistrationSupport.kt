@@ -1,7 +1,6 @@
 package me.whereareiam.spawner
 
 import me.whereareiam.spawner.model.FileInstallPlan
-import me.whereareiam.spawner.target.TargetTasks
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import java.io.File
@@ -11,7 +10,7 @@ internal fun registerInstanceAliases(
 	displayName: String,
 	prepareTaskName: String,
 	runTaskName: String,
-	targetTasks: TargetTasks
+	targetTasks: me.whereareiam.spawner.platform.target.TargetTasks
 ) {
 	project.tasks.register(prepareTaskName) {
 		group = "devserver"

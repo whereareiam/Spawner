@@ -108,7 +108,7 @@ class SpawnerPluginTest {
 		writeProject(
 			buildScript = """
 				import me.whereareiam.spawner.config.SpawnerConfig
-				import me.whereareiam.spawner.download.DownloadProvider
+					import me.whereareiam.spawner.download.provider.DownloadProvider
 				import me.whereareiam.spawner.model.download.DownloadPlan
 				import me.whereareiam.spawner.model.download.ResolvedDownload
 

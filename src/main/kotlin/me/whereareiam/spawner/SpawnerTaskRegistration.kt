@@ -2,12 +2,14 @@ package me.whereareiam.spawner
 
 import me.whereareiam.spawner.config.SpawnerConfig
 import me.whereareiam.spawner.model.RuntimeSettings
+import me.whereareiam.spawner.platform.*
 import org.gradle.api.Project
 
 fun registerSpawnerTasks(project: Project, config: SpawnerConfig) {
 	project.afterEvaluate {
-		validateTypes(config)
-		validateScenarios(config)
+		val platforms = builtInPlatforms()
+		validateConfiguredPlatforms(config, platforms)
+		validateScenarioPlatforms(config, platforms)
 
 		val runtime = RuntimeSettings(
 			serverDir = config.serverDir.get().asFile,
@@ -19,9 +21,9 @@ fun registerSpawnerTasks(project: Project, config: SpawnerConfig) {
 		)
 
 		if (config.scenarios.isEmpty()) {
-			registerStandaloneMode(project, config, runtime)
+			registerStandalonePlatforms(project, config, runtime, platforms)
 		} else {
-			registerScenarioMode(project, config, runtime)
+			registerScenarioPlatforms(project, config, runtime, platforms)
 		}
 	}
 }

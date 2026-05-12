@@ -1,7 +1,6 @@
 package me.whereareiam.spawner.download.provider
 
 import groovy.json.JsonSlurper
-import me.whereareiam.spawner.download.DownloadProvider
 import me.whereareiam.spawner.model.download.DownloadPlan
 import me.whereareiam.spawner.model.download.ResolvedDownload
 import org.gradle.api.GradleException

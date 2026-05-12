@@ -1,8 +1,8 @@
 package me.whereareiam.spawner.config.scenario
 
-import me.whereareiam.spawner.target.proxy.bungeecord.config.BungeeCordScenarioInstanceConfig
-import me.whereareiam.spawner.target.proxy.velocity.config.VelocityScenarioInstanceConfig
-import me.whereareiam.spawner.target.server.paper.config.PaperScenarioInstanceConfig
+import me.whereareiam.spawner.platform.target.proxy.bungeecord.config.BungeeCordScenarioInstanceConfig
+import me.whereareiam.spawner.platform.target.proxy.velocity.config.VelocityScenarioInstanceConfig
+import me.whereareiam.spawner.platform.target.server.paper.config.PaperScenarioInstanceConfig
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import javax.inject.Inject
@@ -70,4 +70,6 @@ open class SpawnerScenarioConfig @Inject constructor(
 	fun bungeecords(): Collection<BungeeCordScenarioInstanceConfig> = bungeecordInstances.values
 
 	fun velocities(): Collection<VelocityScenarioInstanceConfig> = velocityInstances.values
+
+	fun proxies(): Collection<ScenarioInstanceConfig> = bungeecordInstances.values + velocityInstances.values
 }

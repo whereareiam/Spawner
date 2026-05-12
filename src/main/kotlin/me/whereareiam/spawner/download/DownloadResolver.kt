@@ -1,6 +1,7 @@
 package me.whereareiam.spawner.download
 
 import me.whereareiam.spawner.config.SpawnerConfig
+import me.whereareiam.spawner.download.provider.DownloadProvider
 import me.whereareiam.spawner.model.download.DownloadPlan
 import me.whereareiam.spawner.model.download.ResolvedDownload
 import org.gradle.api.GradleException
@@ -18,10 +19,10 @@ internal fun resolveDownload(
 }
 
 internal fun resolveDownload(
-	downloadProviders: Map<String, DownloadProvider>,
-	defaultProvider: String?,
-	userAgent: String,
-	download: DownloadPlan
+    downloadProviders: Map<String, DownloadProvider>,
+    defaultProvider: String?,
+    userAgent: String,
+    download: DownloadPlan
 ): ResolvedDownload {
 	val name = download.provider?.takeIf { it.isNotBlank() }
 		?: defaultProvider?.takeIf { it.isNotBlank() }

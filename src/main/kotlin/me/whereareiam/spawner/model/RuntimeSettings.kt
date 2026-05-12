@@ -1,6 +1,6 @@
 package me.whereareiam.spawner.model
 
-import me.whereareiam.spawner.download.DownloadProvider
+import me.whereareiam.spawner.download.provider.DownloadProvider
 import java.io.File
 
 data class RuntimeSettings(

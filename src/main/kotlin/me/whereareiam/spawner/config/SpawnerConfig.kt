@@ -1,10 +1,10 @@
 package me.whereareiam.spawner.config
 
 import me.whereareiam.spawner.config.scenario.SpawnerScenariosConfig
-import me.whereareiam.spawner.download.DownloadProvider
-import me.whereareiam.spawner.target.proxy.bungeecord.config.BungeeCordStandaloneConfig
-import me.whereareiam.spawner.target.proxy.velocity.config.VelocityStandaloneConfig
-import me.whereareiam.spawner.target.server.paper.config.PaperStandaloneConfig
+import me.whereareiam.spawner.download.provider.DownloadProvider
+import me.whereareiam.spawner.platform.target.proxy.bungeecord.config.BungeeCordStandaloneConfig
+import me.whereareiam.spawner.platform.target.proxy.velocity.config.VelocityStandaloneConfig
+import me.whereareiam.spawner.platform.target.server.paper.config.PaperStandaloneConfig
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.model.ObjectFactory
