@@ -2,6 +2,7 @@ package me.whereareiam.spawner.config
 
 import me.whereareiam.spawner.config.scenario.SpawnerScenariosConfig
 import me.whereareiam.spawner.download.DownloadProvider
+import me.whereareiam.spawner.target.proxy.bungeecord.config.BungeeCordStandaloneConfig
 import me.whereareiam.spawner.target.proxy.velocity.config.VelocityStandaloneConfig
 import me.whereareiam.spawner.target.server.paper.config.PaperStandaloneConfig
 import org.gradle.api.file.DirectoryProperty
@@ -27,6 +28,7 @@ abstract class SpawnerConfig @Inject constructor(
 	val proxyType: Property<String> = objects.property(String::class.java)
 		.convention("none")
 	val paper: PaperStandaloneConfig = objects.newInstance(PaperStandaloneConfig::class.java)
+	val bungeecord: BungeeCordStandaloneConfig = objects.newInstance(BungeeCordStandaloneConfig::class.java)
 	val velocity: VelocityStandaloneConfig = objects.newInstance(VelocityStandaloneConfig::class.java)
 	val scenarios: SpawnerScenariosConfig = objects.newInstance(SpawnerScenariosConfig::class.java)
 	internal val downloadProviders: MutableMap<String, DownloadProvider> = mutableMapOf()

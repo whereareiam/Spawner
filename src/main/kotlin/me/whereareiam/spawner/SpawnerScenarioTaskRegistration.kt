@@ -5,6 +5,9 @@ import me.whereareiam.spawner.model.FileInstallPlan
 import me.whereareiam.spawner.model.RuntimeSettings
 import me.whereareiam.spawner.model.download.DownloadPlan
 import me.whereareiam.spawner.target.TargetTasks
+import me.whereareiam.spawner.target.proxy.bungeecord.BungeeCordProxyTarget
+import me.whereareiam.spawner.target.proxy.bungeecord.model.BungeeCordInstancePlan
+import me.whereareiam.spawner.target.proxy.bungeecord.model.BungeeCordServerPlan
 import me.whereareiam.spawner.target.proxy.velocity.VelocityProxyTarget
 import me.whereareiam.spawner.target.proxy.velocity.model.VelocityInstancePlan
 import me.whereareiam.spawner.target.proxy.velocity.model.VelocityServerPlan
@@ -15,6 +18,7 @@ import org.gradle.api.Project
 
 internal fun registerScenarioMode(project: Project, config: SpawnerConfig, runtime: RuntimeSettings) {
 	val paperTarget = PaperServerTarget()
+	val bungeecordTarget = BungeeCordProxyTarget()
 	val velocityTarget = VelocityProxyTarget()
 
 	for (scenario in config.scenarios.all()) {
@@ -29,14 +33,14 @@ internal fun registerScenarioMode(project: Project, config: SpawnerConfig, runti
 				name = paper.getName(),
 				directory = scenarioDir.resolve(paper.getName()),
 				port = paper.port.get(),
-				version = paper.version.orNull,
-				downloadProvider = paper.downloadProvider.orNull,
-				jvmArgs = paper.jvmArgs.get(),
-				onlineMode = paper.onlineMode.get(),
-				enableBungeecord = scenario.velocities().any {
-					it.forwardingMode.get().equals("legacy", true)
-				},
-				acceptEula = paper.acceptEula.get(),
+					version = paper.version.orNull,
+					downloadProvider = paper.downloadProvider.orNull,
+					jvmArgs = paper.jvmArgs.get(),
+					onlineMode = paper.onlineMode.get(),
+					enableBungeecord = scenario.bungeecords().isNotEmpty() || scenario.velocities().any {
+						it.forwardingMode.get().equals("legacy", true)
+					},
+					acceptEula = paper.acceptEula.get(),
 				rootOverlayDir = paper.rootOverlayDir.orNull?.asFile,
 				installs = paper.installs().map { install ->
 					FileInstallPlan(install.files, install.into.orNull ?: "")
@@ -62,10 +66,53 @@ internal fun registerScenarioMode(project: Project, config: SpawnerConfig, runti
 				"prepare${scenarioSuffix}${plan.name.toTaskSuffix()}",
 				runTaskName,
 				tasks
-			)
-		}
+				)
+			}
 
-		scenario.velocities().forEach { velocity ->
+			scenario.bungeecords().forEach { bungeecord ->
+				val plan = BungeeCordInstancePlan(
+					name = bungeecord.getName(),
+					directory = scenarioDir.resolve(bungeecord.getName()),
+					port = bungeecord.port.get(),
+					version = bungeecord.version.orNull,
+					downloadProvider = bungeecord.downloadProvider.orNull,
+					jvmArgs = bungeecord.jvmArgs.get(),
+					onlineMode = bungeecord.onlineMode.get(),
+					ipForward = bungeecord.ipForward.get(),
+					servers = bungeecord.servers().map { server ->
+						BungeeCordServerPlan(server.getName(), server.address.orNull ?: "")
+					},
+					tryServers = bungeecord.tryServers.orNull?.takeIf { it.isNotEmpty() }
+						?: bungeecord.servers().map { it.getName() },
+					rootOverlayDir = bungeecord.rootOverlayDir.orNull?.asFile,
+					installs = bungeecord.installs().map { install ->
+						FileInstallPlan(install.files, install.into.orNull ?: "")
+					},
+					downloads = bungeecord.downloads().map { download ->
+						DownloadPlan(
+							provider = download.provider.get(),
+							identifier = download.identifier.get(),
+							version = download.version.orNull,
+							versionType = download.versionType.get(),
+							fileName = download.fileName.orNull,
+							into = download.into.orNull ?: ""
+						)
+					}
+				)
+				val tasks = bungeecordTarget.registerTasks(project, runtime, plan, "${scenarioSuffix}${plan.name.toTaskSuffix()}")
+				registered += tasks
+				groupedServerSpecs += tasks.serverSpec
+				val runTaskName = "run${scenarioSuffix}${plan.name.toTaskSuffix()}"
+				registerInstanceAliases(
+					project,
+					"$scenarioName ${plan.name}",
+					"prepare${scenarioSuffix}${plan.name.toTaskSuffix()}",
+					runTaskName,
+					tasks
+				)
+			}
+
+			scenario.velocities().forEach { velocity ->
 			val plan = VelocityInstancePlan(
 				name = velocity.getName(),
 				directory = scenarioDir.resolve(velocity.getName()),

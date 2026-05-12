@@ -1,5 +1,6 @@
 package me.whereareiam.spawner.config.scenario
 
+import me.whereareiam.spawner.target.proxy.bungeecord.config.BungeeCordScenarioInstanceConfig
 import me.whereareiam.spawner.target.proxy.velocity.config.VelocityScenarioInstanceConfig
 import me.whereareiam.spawner.target.server.paper.config.PaperScenarioInstanceConfig
 import org.gradle.api.Action
@@ -29,6 +30,7 @@ open class SpawnerScenarioConfig @Inject constructor(
 	private val objects: ObjectFactory
 ) {
 	private val paperInstances = linkedMapOf<String, PaperScenarioInstanceConfig>()
+	private val bungeecordInstances = linkedMapOf<String, BungeeCordScenarioInstanceConfig>()
 	private val velocityInstances = linkedMapOf<String, VelocityScenarioInstanceConfig>()
 
 	fun getName(): String = scenarioName
@@ -41,9 +43,19 @@ open class SpawnerScenarioConfig @Inject constructor(
 		action.execute(velocity(name))
 	}
 
+	fun bungeecord(name: String, action: Action<in BungeeCordScenarioInstanceConfig>) {
+		action.execute(bungeecord(name))
+	}
+
 	fun paper(name: String): PaperScenarioInstanceConfig {
 		return paperInstances.getOrPut(name) {
 			objects.newInstance(PaperScenarioInstanceConfig::class.java, name)
+		}
+	}
+
+	fun bungeecord(name: String): BungeeCordScenarioInstanceConfig {
+		return bungeecordInstances.getOrPut(name) {
+			objects.newInstance(BungeeCordScenarioInstanceConfig::class.java, name)
 		}
 	}
 
@@ -54,6 +66,8 @@ open class SpawnerScenarioConfig @Inject constructor(
 	}
 
 	fun papers(): Collection<PaperScenarioInstanceConfig> = paperInstances.values
+
+	fun bungeecords(): Collection<BungeeCordScenarioInstanceConfig> = bungeecordInstances.values
 
 	fun velocities(): Collection<VelocityScenarioInstanceConfig> = velocityInstances.values
 }

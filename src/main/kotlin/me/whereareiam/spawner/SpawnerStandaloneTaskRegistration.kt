@@ -4,6 +4,9 @@ import me.whereareiam.spawner.config.SpawnerConfig
 import me.whereareiam.spawner.model.FileInstallPlan
 import me.whereareiam.spawner.model.RuntimeSettings
 import me.whereareiam.spawner.target.TargetTasks
+import me.whereareiam.spawner.target.proxy.bungeecord.BungeeCordProxyTarget
+import me.whereareiam.spawner.target.proxy.bungeecord.model.BungeeCordInstancePlan
+import me.whereareiam.spawner.target.proxy.bungeecord.model.BungeeCordServerPlan
 import me.whereareiam.spawner.target.proxy.velocity.VelocityProxyTarget
 import me.whereareiam.spawner.target.proxy.velocity.model.VelocityInstancePlan
 import me.whereareiam.spawner.target.proxy.velocity.model.VelocityServerPlan
@@ -15,13 +18,15 @@ import org.gradle.api.Project
 
 internal fun registerStandaloneMode(project: Project, config: SpawnerConfig, runtime: RuntimeSettings) {
 	val paperTarget = PaperServerTarget()
+	val bungeecordTarget = BungeeCordProxyTarget()
 	val velocityTarget = VelocityProxyTarget()
 	val registered = mutableListOf<TargetTasks>()
 	val groupedServerSpecs = mutableListOf<String>()
 
 	if (isPaperServer(config)) {
 		val paperDir = runtime.serverDir.resolve("paper")
-		val enableBungeecord = isVelocityProxy(config) && config.velocity.forwardingMode.get().equals("legacy", true)
+		val enableBungeecord = isBungeeCordProxy(config) ||
+			(isVelocityProxy(config) && config.velocity.forwardingMode.get().equals("legacy", true))
 		val installs = mutableListOf<FileInstallPlan>()
 		if (config.paper.pluginJar.isPresent) {
 			installs += installPlan(project, "plugins", config.paper.pluginJar)
@@ -50,6 +55,39 @@ internal fun registerStandaloneMode(project: Project, config: SpawnerConfig, run
 		registered += tasks
 		groupedServerSpecs += tasks.serverSpec
 		registerInstanceAliases(project, "Paper", "preparePaper", "runPaper", tasks)
+	}
+
+	if (isBungeeCordProxy(config)) {
+		val proxyDir = runtime.serverDir.resolve("bungeecord")
+		val installs = mutableListOf<FileInstallPlan>()
+		if (config.bungeecord.pluginJar.isPresent) {
+			installs += installPlan(project, "plugins", config.bungeecord.pluginJar)
+		}
+		if (!config.bungeecord.extraFiles.isEmpty) {
+			val extraDir = config.bungeecord.extraFilesDir.orNull?.asFile
+				?: throw GradleException("spawner.bungeecord.extraFilesDir is required when bungeecord.extraFiles is set.")
+			installs += installPlan(project, relativePath(proxyDir, extraDir), config.bungeecord.extraFiles)
+		}
+
+		val plan = BungeeCordInstancePlan(
+			name = "bungeecord",
+			directory = proxyDir,
+			port = config.bungeecord.port.get(),
+			version = config.bungeecord.version.orNull,
+			downloadProvider = config.bungeecord.downloadProvider.orNull,
+			jvmArgs = config.bungeecord.jvmArgs.get(),
+			onlineMode = config.bungeecord.onlineMode.get(),
+			ipForward = config.bungeecord.ipForward.get(),
+			servers = listOf(BungeeCordServerPlan("lobby", "127.0.0.1:${config.paper.port.get()}")),
+			tryServers = listOf("lobby"),
+			rootOverlayDir = null,
+			installs = installs,
+			downloads = emptyList()
+		)
+		val tasks = bungeecordTarget.registerTasks(project, runtime, plan, "")
+		registered += tasks
+		groupedServerSpecs += tasks.serverSpec
+		registerInstanceAliases(project, "BungeeCord", "prepareBungeeCord", "runBungeeCord", tasks)
 	}
 
 	if (isVelocityProxy(config)) {

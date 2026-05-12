@@ -25,12 +25,12 @@ class SpawnerPluginTest {
 				    id("me.whereareiam.spawner")
 				}
 
-				extensions.configure<SpawnerConfig>("spawner") {
-				    scenarios.register("sync") {
-				        velocity("proxy") {
-				            server("paper-a", "127.0.0.1:25566")
-				            tryServers("paper-a")
-				        }
+					extensions.configure<SpawnerConfig>("spawner") {
+					    scenarios.register("sync") {
+					        bungeecord("proxy") {
+					            server("paper-a", "127.0.0.1:25566")
+					            tryServers("paper-a")
+					        }
 				    }
 				}
 			""".trimIndent()
@@ -40,6 +40,67 @@ class SpawnerPluginTest {
 
 		assertTrue(result.output.contains("Path"))
 		assertTrue(result.output.contains(":prepareDevSync"))
+	}
+
+	@Test
+	fun `prepares bungeecord scenario with overlays and installs`() {
+		writeProject(
+			buildScript = """
+				import me.whereareiam.spawner.config.SpawnerConfig
+
+				plugins {
+				    id("me.whereareiam.spawner")
+				}
+
+				extensions.configure<SpawnerConfig>("spawner") {
+				    scenarios.register("sync") {
+				        bungeecord("proxy") {
+				            port.set(25565)
+				            rootOverlayDir.set(layout.projectDirectory.dir("overlays/proxy"))
+				            server("paper-a", "127.0.0.1:25566")
+				            server("paper-b", "127.0.0.1:25567")
+				            tryServers("paper-a", "paper-b")
+				            install {
+				                from(layout.projectDirectory.file("artifacts/proxy-plugin.jar"))
+				                into("plugins")
+				            }
+				            install {
+				                from(layout.projectDirectory.file("artifacts/module.jar"))
+				                into("plugins/modules")
+				            }
+				        }
+
+				        paper("paper-a") {
+				            port.set(25566)
+				        }
+
+				        paper("paper-b") {
+				            port.set(25567)
+				        }
+				    }
+				}
+			""".trimIndent()
+		)
+
+		writeFile("artifacts/proxy-plugin.jar", "proxy")
+		writeFile("artifacts/module.jar", "module")
+		writeFile("server/sync/proxy/BungeeCord.jar", "bungeecord-binary")
+		writeFile("server/sync/paper-a/paper.jar", "paper-a-binary")
+		writeFile("server/sync/paper-b/paper.jar", "paper-b-binary")
+		writeFile("overlays/proxy/plugins/sample/settings.yml", "proxy-overlay: true\n")
+
+		val result = gradle("prepareDevSync")
+
+		assertEquals(TaskOutcome.SUCCESS, result.task(":prepareDevSync")?.outcome)
+		assertTrue(path("server/sync/proxy/plugins/proxy-plugin.jar").toFile().exists())
+		assertTrue(path("server/sync/proxy/plugins/modules/module.jar").toFile().exists())
+		assertTrue(path("server/sync/proxy/plugins/sample/settings.yml").readText().contains("proxy-overlay"))
+		assertTrue(path("server/sync/paper-a/spigot.yml").readText().contains("bungeecord: true"))
+
+		val configYml = path("server/sync/proxy/config.yml").readText()
+		assertTrue(configYml.contains("address: 127.0.0.1:25566"))
+		assertTrue(configYml.contains("address: 127.0.0.1:25567"))
+		assertTrue(configYml.contains("ip_forward: true"))
 	}
 
 	@Test
@@ -145,6 +206,42 @@ class SpawnerPluginTest {
 	}
 
 	@Test
+	fun `prepares standalone bungeecord dev servers`() {
+		writeProject(
+			buildScript = """
+				import me.whereareiam.spawner.config.SpawnerConfig
+
+				plugins {
+				    id("me.whereareiam.spawner")
+				}
+
+				extensions.configure<SpawnerConfig>("spawner") {
+				    serverType.set("paper")
+				    proxyType.set("bungeecord")
+				    paper.port.set(25566)
+				    bungeecord.port.set(25565)
+				    bungeecord.pluginJar.set(layout.projectDirectory.file("artifacts/bungeecord-plugin.jar"))
+				    bungeecord.extraFiles.from(layout.projectDirectory.file("artifacts/provider.jar"))
+				    bungeecord.extraFilesDir.set(serverDir.dir("bungeecord").map { it.dir("plugins/providers") })
+				}
+			""".trimIndent()
+		)
+
+		writeFile("artifacts/bungeecord-plugin.jar", "bungeecord-plugin")
+		writeFile("artifacts/provider.jar", "provider")
+		writeFile("server/bungeecord/BungeeCord.jar", "bungeecord-binary")
+		writeFile("server/paper/paper.jar", "paper-binary")
+
+		val result = gradle("prepareDevServers")
+
+		assertEquals(TaskOutcome.SUCCESS, result.task(":prepareDevServers")?.outcome)
+		assertTrue(path("server/bungeecord/plugins/bungeecord-plugin.jar").toFile().exists())
+		assertTrue(path("server/bungeecord/plugins/providers/provider.jar").toFile().exists())
+		assertTrue(path("server/paper/spigot.yml").readText().contains("bungeecord: true"))
+		assertTrue(path("server/bungeecord/config.yml").readText().contains("address: 127.0.0.1:25566"))
+	}
+
+	@Test
 	fun `prepares standalone dev servers`() {
 		writeProject(
 			buildScript = """
@@ -191,12 +288,12 @@ class SpawnerPluginTest {
 				    id("me.whereareiam.spawner")
 				}
 
-				extensions.configure<SpawnerConfig>("spawner") {
-				    scenarios.register("sync") {
-				        velocity("proxy") {
-				            server("paper-a", "127.0.0.1:25566")
-				            tryServers("paper-a")
-				        }
+					extensions.configure<SpawnerConfig>("spawner") {
+					    scenarios.register("sync") {
+					        bungeecord("proxy") {
+					            server("paper-a", "127.0.0.1:25566")
+					            tryServers("paper-a")
+					        }
 				        paper("paper-a") {
 				            port.set(25566)
 				        }
