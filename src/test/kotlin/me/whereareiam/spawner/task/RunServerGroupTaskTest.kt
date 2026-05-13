@@ -25,4 +25,10 @@ class RunServerGroupTaskTest {
 		assertNull(formatProcessLogLine("proxy", ">>"))
 		assertNull(formatProcessLogLine("proxy", " > "))
 	}
+
+	@Test
+	fun `ignores prompt output with ansi and carriage return noise`() {
+		assertNull(formatProcessLogLine("proxy", "\u001B[0m>>\r"))
+		assertNull(formatProcessLogLine("proxy", "\u001B[32m>\u001B[0m"))
+	}
 }

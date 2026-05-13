@@ -58,7 +58,7 @@ abstract class RunServerTask : DefaultTask() {
 		Thread(
 			{
 				input.bufferedReader().useLines { lines ->
-					lines.forEach { log(it) }
+					lines.forEach { line -> formatProcessLogLine("", line)?.let(log) }
 				}
 			},
 			"${name}-out"

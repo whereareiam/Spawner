@@ -216,13 +216,6 @@ abstract class RunServerGroupTask : DefaultTask() {
 	}
 }
 
-internal fun formatProcessLogLine(prefix: String, line: String): String? {
-	val trimmed = line.trim()
-	if (trimmed.isEmpty()) return null
-	if (trimmed.all { it == '>' }) return null
-	return "[$prefix] $line"
-}
-
 private data class ServerProcessSpec(
 	val name: String,
 	val workingDir: File,
