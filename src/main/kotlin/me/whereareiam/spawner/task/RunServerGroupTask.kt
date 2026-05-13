@@ -166,7 +166,9 @@ abstract class RunServerGroupTask : DefaultTask() {
 			{
 				try {
 					input.bufferedReader().useLines { lines ->
-						lines.forEach { line -> log("[$prefix] $line") }
+						lines.forEach { line ->
+							formatProcessLogLine(prefix, line)?.let(log)
+						}
 					}
 				} catch (_: Exception) {
 					// Ignore stream closure during shutdown or fast process exits.
@@ -212,6 +214,13 @@ abstract class RunServerGroupTask : DefaultTask() {
 			return (listOf(name, workingDir.absolutePath) + commandLine).joinToString("\u001F")
 		}
 	}
+}
+
+internal fun formatProcessLogLine(prefix: String, line: String): String? {
+	val trimmed = line.trim()
+	if (trimmed.isEmpty()) return null
+	if (trimmed.all { it == '>' }) return null
+	return "[$prefix] $line"
 }
 
 private data class ServerProcessSpec(
